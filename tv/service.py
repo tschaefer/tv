@@ -1,88 +1,125 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, jsonify, request, make_response, abort
+from flask import Flask, jsonify, make_response
+from flask_restful import Api, Resource, reqparse
 from remote import Remote
 
 app = Flask(__name__)
-
+api = Api(app)
 remote = Remote()
 
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
+class Api(object):
 
-@app.route('/', methods=['GET'])
-def omx():
-    return "OMXPlayer RESTFull API."
+    def __init__(self):
+        self.endpoint = ""
+        self.action = ""
 
-@app.route('/omx/api/v1.0/load', methods=['POST'])
-def load():
-    if not request.json:
-        abort(400)
-    if 'uri' not in request.json:
-        abort(400)
+    def make_response_ok(self, code):
+        response = {
+            'player':   remote.player_version(),
+            'endpoint': self.endpoint,
+            'action':   self.action
+        }
+        return make_response(jsonify(response), code)
 
-    uri = request.json['uri']
-    remote.load(uri)
+    def make_response_error(self, msg, code):
+        response = {
+            'player':   remote.player_version(),
+            'endpoint': self.endpoint,
+            'error':    msg
+        }
+        return make_response(jsonify(response), code)
 
-    return jsonify({'load': uri}), 201
+class Playback(Api, Resource):
 
-@app.route('/omx/api/v1.0/playback', methods=['POST'])
-def playback():
-    if not request.json:
-        abort(400)
-    if not remote.status():
-        abort(404)
-    if 'action' not in request.json:
-        abort(400)
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('action', type=str, default='',
+                                   location='json')
+        self.reqparse.add_argument('data', type=str, default='',
+                                   location='json')
+        super(Playback, self).__init__()
 
-    action = request.json['action']
-    if action == 'resume' or action == 'pause':
-        remote.pause_resume()
-    elif action == 'stop':
-        remote.stop()
-    else:
-        abort(400)
+    def post(self):
+        self.endpoint = 'playback'
+        args = self.reqparse.parse_args()
+        self.action = args['action']
 
-    return jsonify({'playback':  action}), 201
+        if self.action == 'play':
+            if not remote.player_status():
+                return self.make_response_error('player not running', 406)
+            remote.playback_play()
+        elif self.action == 'pause':
+            if not remote.player_status():
+                return self.make_response_error('player not running', 406)
+            remote.playback_pause()
+        elif self.action == 'stop':
+            remote.playback_stop()
+        elif self.action == 'start':
+            data = args['data']
+            if not data:
+                return self.make_response_error('missing data', 400)
+            remote.playback_start(args['data'])
+        else:
+            return self.make_response_error('bad action', 400)
 
-@app.route('/omx/api/v1.0/volume', methods=['POST'])
-def volume():
-    if not request.json:
-        abort(400)
-    if not remote.status():
-        abort(404)
-    if 'action' not in request.json:
-        abort(400)
+        return self.make_response_ok(202)
 
-    action = request.json['action']
-    if action == 'up':
-        remote.volume_up()
-    elif action == 'down':
-        remote.volume_down()
-    else:
-        abort(400)
 
-    return jsonify({'volume':  action}), 201
+class Volume(Api, Resource):
 
-@app.route('/omx/api/v1.0/seek', methods=['POST'])
-def seek():
-    if not request.json:
-        abort(400)
-    if not remote.status():
-        abort(404)
-    if 'action' not in request.json:
-        abort(400)
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('action', type=str, default='',
+                                   location='json')
+        self.reqparse.add_argument('data', type=str, default='',
+                                   location='json')
+        super(Volume, self).__init__()
 
-    action = request.json['action']
-    if action == 'fwd':
-        remote.seek_fwd()
-    elif action == 'back':
-        remote.seek_back()
-    else:
-        abort(400)
+    def post(self):
+        self.endpoint = 'volume'
+        args = self.reqparse.parse_args()
+        self.action = args['action']
 
-    return jsonify({'seek':  action}), 201
+        if self.action == 'up':
+            remote.volume_up()
+        elif self.action == 'down':
+            remote.volume_down()
+        else:
+            return self.make_response_error('bad action', 400)
+
+        return self.make_response_ok(202)
+
+
+class Seek(Api, Resource):
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('action', type=str, default='',
+                                   location='json')
+        self.reqparse.add_argument('data', type=str, default='',
+                                   location='json')
+        super(Seek, self).__init__()
+
+    def post(self):
+        self.endpoint = 'seek'
+        args = self.reqparse.parse_args()
+        self.action = args['action']
+
+        if self.action == 'fwd':
+            remote.seek_fwd()
+        elif self.action == 'down':
+            remote.seek_back()
+        else:
+            return self.make_response_error('bad action', 400)
+
+        return self.make_response_ok(202)
+
+
+api.add_resource(Playback, '/tv/api/v1.0/playback', endpoint='playback')
+api.add_resource(Volume, '/tv/api/v1.0/volume', endpoint='volume')
+api.add_resource(Seek, '/tv/api/v1.0/seek', endpoint='seek')
+
 
 class Service(object):
 
