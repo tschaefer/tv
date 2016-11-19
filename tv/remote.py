@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from subprocess import check_call, CalledProcessError
+from subprocess import check_call, CalledProcessError, Popen, PIPE
 
 OMXCMDS = {
         'play':        "p",
+        'pause':       "p",
         'volume_down': "-",
         'volume_up':   "+",
         'seek_fwd':    "$'\e'[C",
@@ -12,6 +13,7 @@ OMXCMDS = {
 
 MPVCMDS = {
         'play':        "keypress p\n",
+        'pause':       "keypress p\n",
         'volume_down': "keypress 9\n",
         'volume_up':   "keypress 0\n",
         'seek_fwd':    "seek 30\n",
@@ -20,7 +22,7 @@ MPVCMDS = {
 
 class Remote(object):
 
-    def __init__(self, player='MPV', fifo='/tmp/tv.fifo'):
+    def __init__(self, player='OMX', fifo='/tmp/tv.fifo'):
         self.player = player
         self.fifo = fifo
         self.cmds = None
@@ -37,10 +39,17 @@ class Remote(object):
         with open(self.fifo, 'w') as fifo:
             fifo.write(cmd)
 
-    def pause_resume(self):
+    def playback_pause(self):
+        self.send(self.cmds['pause'])
+
+    def playback_play(self):
         self.send(self.cmds['play'])
 
-    def stop(self):
+    def playback_start(self, uri):
+        check_call([self.bin, 'stop'])
+        check_call([self.bin, 'start', '%s' % uri])
+
+    def playback_stop(self):
         check_call([self.bin, 'stop'])
 
     def volume_down(self):
@@ -55,14 +64,15 @@ class Remote(object):
     def seek_back(self):
         self.send(self.cmds['seek_back'])
 
-    def load(self, uri):
-        check_call([self.bin, 'stop'])
-        check_call([self.bin, 'start', '%s' % uri])
-
-    def status(self):
+    def player_status(self):
         try:
             check_call([self.bin, 'status'])
         except CalledProcessError:
             return False
         else:
             return True
+
+    def player_version(self):
+        proc = Popen([self.bin, 'version'], stdout=PIPE, stderr=PIPE)
+        out, _ = proc.communicate()
+        return out
