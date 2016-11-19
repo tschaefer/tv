@@ -5,6 +5,7 @@ MPVBIN=$(basename $MPVPLAYER)
 MPVARGS=""
 MPVFIFO="/tmp/tv.fifo"
 MPVINPUT="--input-file=${MPVFIFO}"
+MPVVERSION=$($MPVPLAYER --version | head -n 1 | awk '{ print $2 }')
 
 case "$1" in
     start)
@@ -29,6 +30,9 @@ case "$1" in
         pgrep $MPVBIN >/dev/null 2>&1
         exit $?
         ;;
+     version)
+         echo -n "mpv $MPVVERSION"
+         ;;
      *)
         exit 1
         ;;

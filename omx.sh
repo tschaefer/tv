@@ -5,6 +5,8 @@ OMXBIN=$(basename $OMXPLAYER)
 OMXARGS="-o hdmi"
 OMXENV="/opt/vc/lib:/usr/lib/omxplayer"
 OMXFIFO="/tmp/tv.fifo"
+OMXVERSION=$(LD_LIBRARY_PATH=$OMXENV $OMXPLAYER --version | \
+    awk '/Version/ { print $3 }')
 
 case "$1" in
     start)
@@ -26,6 +28,9 @@ case "$1" in
      status)
          pgrep $OMXBIN >/dev/null 2>&1
          exit $?
+         ;;
+     version)
+         echo "omxplayer $OMXVERSION"
          ;;
      *)
         exit 1
