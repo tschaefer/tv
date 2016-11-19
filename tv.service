@@ -1,0 +1,12 @@
+[Unit]
+Description=tv. REST API service for the awesome OMXPlayer and MPV.
+Requires=network.target
+
+[Service]
+TimeoutStopSec=0
+User=www-data
+Group=www-data
+ExecStart=/usr/local/bin/omxdcli -H localhost -p 8090
+
+[Install]
+WantedBy=multi-user.target
