@@ -54,6 +54,8 @@ class Playback(Api, Resource):
                 return self.make_response_error('player not running', 406)
             remote.playback_pause()
         elif self.action == 'stop':
+            if not remote.player_status():
+                return self.make_response_error('player not running', 406)
             remote.playback_stop()
         elif self.action == 'start':
             data = args['data']
@@ -81,6 +83,9 @@ class Volume(Api, Resource):
         args = self.reqparse.parse_args()
         self.action = args['action']
 
+        if not remote.player_status():
+            return self.make_response_error('player not running', 406)
+
         if self.action == 'up':
             remote.volume_up()
         elif self.action == 'down':
@@ -105,6 +110,9 @@ class Seek(Api, Resource):
         self.endpoint = 'seek'
         args = self.reqparse.parse_args()
         self.action = args['action']
+
+        if not remote.player_status():
+            return self.make_response_error('player not running', 406)
 
         if self.action == 'fwd':
             remote.seek_fwd()
