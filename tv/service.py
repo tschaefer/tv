@@ -39,9 +39,9 @@ class Playback(Api, Resource):
         self.reqparse.add_argument('data', type=str, default='',
                                    location='json')
         super(Playback, self).__init__()
+        self.endpoint = 'playback'
 
     def post(self):
-        self.endpoint = 'playback'
         args = self.reqparse.parse_args()
         self.action = args['action']
 
@@ -77,9 +77,9 @@ class Volume(Api, Resource):
         self.reqparse.add_argument('data', type=str, default='',
                                    location='json')
         super(Volume, self).__init__()
+        self.endpoint = 'volume'
 
     def post(self):
-        self.endpoint = 'volume'
         args = self.reqparse.parse_args()
         self.action = args['action']
 
@@ -105,9 +105,9 @@ class Seek(Api, Resource):
         self.reqparse.add_argument('data', type=str, default='',
                                    location='json')
         super(Seek, self).__init__()
+        self.endpoint = 'seek'
 
     def post(self):
-        self.endpoint = 'seek'
         args = self.reqparse.parse_args()
         self.action = args['action']
 
