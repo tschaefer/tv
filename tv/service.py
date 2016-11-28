@@ -133,7 +133,7 @@ class Seek(Api, Resource):
             return self.make_response_error('action missing', 400)
         if self.action == 'fwd':
             remote.seek_fwd()
-        elif self.action == 'down':
+        elif self.action == 'back':
             remote.seek_back()
         else:
             return self.make_response_error('bad action', 400)
