@@ -2,9 +2,10 @@
 
 OMXPLAYER="/usr/bin/omxplayer.bin"
 OMXBIN=$(basename $OMXPLAYER)
-OMXARGS="-o hdmi"
 OMXENV="/opt/vc/lib:/usr/lib/omxplayer"
 OMXFIFO="/tmp/tv.fifo"
+OMXARGS="$2"
+OMXURI="$3"
 OMXVERSION=$(LD_LIBRARY_PATH=$OMXENV $OMXPLAYER --version | \
     awk '/Version/ { print $3 }')
 
@@ -18,7 +19,7 @@ case "$1" in
             mkfifo $OMXFIFO
         fi
         LD_LIBRARY_PATH=$OMXENV \
-            $OMXPLAYER $OMXARGS $2 < $OMXFIFO >/dev/null 2>&1 &
+            $OMXPLAYER $OMXARGS $OMXURI < $OMXFIFO >/dev/null 2>&1 &
         echo -n "" > $OMXFIFO
         ;;
      stop)

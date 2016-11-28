@@ -11,6 +11,11 @@ OMXCMDS = {
         'seek_back':   "$'\e'[D"
     }
 
+OMXOPTS = {
+        'live':  "--adev hdmi --timeout 20 --live",
+        'local': "--adev hdmi"
+    }
+
 MPVCMDS = {
         'play':        "keypress p\n",
         'pause':       "keypress p\n",
@@ -18,6 +23,11 @@ MPVCMDS = {
         'volume_up':   "keypress 0\n",
         'seek_fwd':    "seek 30\n",
         'seek_back':   "seek -30\n"
+    }
+
+MPVOPTS = {
+        'live':  "",
+        'local': ""
     }
 
 class Remote(object):
@@ -30,9 +40,11 @@ class Remote(object):
 
         if self.player == 'OMX':
             self.cmds = OMXCMDS
+            self.opts = OMXOPTS
             self.bin = "/usr/local/bin/omx.sh"
         elif self.player == 'MPV':
             self.cmds = MPVCMDS
+            self.opts = MPVOPTS
             self.bin = "/usr/local/bin/mpv.sh"
 
     def send(self, cmd):
@@ -45,9 +57,9 @@ class Remote(object):
     def playback_play(self):
         self.send(self.cmds['play'])
 
-    def playback_start(self, uri):
+    def playback_start(self, opts, uri):
         check_call([self.bin, 'stop'])
-        check_call([self.bin, 'start', '%s' % uri])
+        check_call([self.bin, 'start', '%s' % self.opts[opts], '%s' % uri])
 
     def playback_stop(self):
         check_call([self.bin, 'stop'])

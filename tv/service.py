@@ -38,6 +38,8 @@ class Playback(Api, Resource):
                                    location='json')
         self.reqparse.add_argument('data', type=str, default='',
                                    location='json')
+        self.reqparse.add_argument('options', type=str, default='',
+                                   location='json')
         super(Playback, self).__init__()
         self.endpoint = 'playback'
 
@@ -45,7 +47,9 @@ class Playback(Api, Resource):
         args = self.reqparse.parse_args()
         self.action = args['action']
 
-        if self.action == 'play':
+        if not self.action:
+            return self.make_response_error('action missing', 400)
+        elif self.action == 'play':
             if not remote.player_status():
                 return self.make_response_error('player not running', 406)
             remote.playback_play()
@@ -61,7 +65,12 @@ class Playback(Api, Resource):
             data = args['data']
             if not data:
                 return self.make_response_error('missing data', 400)
-            remote.playback_start(args['data'])
+            options = args['options']
+            if not options:
+                return self.make_response_error('missing options', 400)
+            if options not in ['live', 'local']:
+                return self.make_response_error('bad options', 400)
+            remote.playback_start(options, data)
         else:
             return self.make_response_error('bad action', 400)
 
@@ -76,6 +85,8 @@ class Volume(Api, Resource):
                                    location='json')
         self.reqparse.add_argument('data', type=str, default='',
                                    location='json')
+        self.reqparse.add_argument('options', type=str, default='',
+                                   location='json')
         super(Volume, self).__init__()
         self.endpoint = 'volume'
 
@@ -86,6 +97,8 @@ class Volume(Api, Resource):
         if not remote.player_status():
             return self.make_response_error('player not running', 406)
 
+        if not self.action:
+            return self.make_response_error('action missing', 400)
         if self.action == 'up':
             remote.volume_up()
         elif self.action == 'down':
@@ -104,6 +117,8 @@ class Seek(Api, Resource):
                                    location='json')
         self.reqparse.add_argument('data', type=str, default='',
                                    location='json')
+        self.reqparse.add_argument('options', type=str, default='',
+                                   location='json')
         super(Seek, self).__init__()
         self.endpoint = 'seek'
 
@@ -114,6 +129,8 @@ class Seek(Api, Resource):
         if not remote.player_status():
             return self.make_response_error('player not running', 406)
 
+        if not self.action:
+            return self.make_response_error('action missing', 400)
         if self.action == 'fwd':
             remote.seek_fwd()
         elif self.action == 'down':
