@@ -26,11 +26,20 @@ following base URL:
     /tv/api/v1.0/
 
 Every endpoint allows only `POST` requests and has one mandatory field `action`
-and one optional field `data`.
+and two further fields `data` and `options`.
+
+Request
+
+    {
+      "action": "start",
+      "endpoint": "playback",
+      "options": "local",
+      "data": "https://www.youtube.com/watch?v=IAISUDbjXj0"
+    }
 
 The service will answer with a suitable HTTP status code and a JSON fragment.
 
-Response *ok*
+Response *ok* 202
 
     {
       "action": "start",
@@ -38,7 +47,7 @@ Response *ok*
       "player": "omxplayer dfea8c9\n"
     }
 
-Response *error*
+Response *error* 404
 
     {
       "endpoint": "playback",
@@ -48,12 +57,15 @@ Response *error*
 
 ### Playback
 
-| Action    | Data               | Description                       |
-| --------- | ------------------ | --------------------------------- |
-| **start** | URI to media file  | Start player and play media file. |
-| **stop**  | *none*             | Stop playback and player.         |
-| **play**  | *none*             | Play / pause playback.            |
-| **pause** | *none*             | Play / pause playback             |
+| Action    | Data               | Options       | Description                       |
+| --------- | ------------------ | ------------- | --------------------------------- |
+| **start** | URI to media file  | live or local | Start player and play media file. |
+| **stop**  | *none*             | *none*        | Stop playback and player.         |
+| **play**  | *none*             | *none*        | Play / pause playback.            |
+| **pause** | *none*             | *none*        | Play / pause playback             |
+
+`live` sets the OMXPlayer options `--live --timeout=20 --adev hdmi`. `local`
+sets the OMXPlayer options `--adev hdmi`.
 
 #### Example
 
@@ -64,10 +76,10 @@ Response *error*
 
 ### Volume
 
-| Action   | Data   | Description      |
-| -------- | ------ | ---------------- |
-| **up**   | *none* | Increase volume. |
-| **down** | *none* | Decrease volume. |
+| Action   | Data   | Options | Description      |
+| -------- | ------ | ------- | ---------------- |
+| **up**   | *none* | *none*  | Increase volume. |
+| **down** | *none* | *none*  | Decrease volume. |
 
 #### Example
 
@@ -76,10 +88,10 @@ Response *error*
 
 ### Seek
 
-| Action   | Data   | Description    |
-| -------- | ------ | -------------- |
-| **fwd**  | *none* | Seek forward.  |
-| **back** | *none* | Seek backword. |
+| Action   | Data   | Options | Description    |
+| -------- | ------ | ------- | -------------- |
+| **fwd**  | *none* | *none*  | Seek forward.  |
+| **back** | *none* | *none*  | Seek backword. |
 
 #### Example
 
